@@ -12,4 +12,3 @@ echo "Quick test"
 ?>
 </body>
 </html>
-
