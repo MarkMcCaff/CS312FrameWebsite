@@ -6,27 +6,30 @@
 </head>
 <body>
 
-<?php
-
-$widthErr = $heightErr = "";
-$width = $height = $area = $cost = 0;
-if (empty($_POST["width"])) {
-    $genderErr = "Width is required";
-} else {
-    $gender = test_input($_POST["width"]);
-}
-if (empty($_POST["height"])) {
-    $genderErr = "Height is required";
-} else {
-    $gender = test_input($_POST["Height"]);
-}
-?>
 <h1>Frame Price Estimator</h1>
 <p>Please enter your photo sizes to get a framing cost estimate</p>
-<form method = "post" action="framing.php">
-<label for = "width">Image Width:</label>
-<input type="number" name="width" value="<?php echo $width;?>">;
+<form method = "get" action="framing.php">
 
+  <p>Photo Width: <input type="number" name="width">
+    <select name="measure">
+    <option value="mm">mm</option>
+    <option value="cm">cm</option>
+    <option value="inch">inch</option>
+      </select></p>
+  <p>Photo Height: <input type="number" name="height"> </p>
+
+  <input type="radio" id = "economy" name="delivery" value="Economy" checked>
+  <label for="economy">Economy</label>
+
+  <input type="radio" id="rapid" name="delivery" value="Rapid">
+  <label for="rapid">Rapid</label>
+
+  <input type="radio" id="nextDay" name="delivery" value="NextDay">
+  <label for="nextDay">NextDay</label>
+  <br>
+  <br>
+  <input type="checkbox" id="VAT"name = "VAT"> <label for="VAT">Include VAT in price</label><br>
+  <br>
   <input type="submit">
 </form>
 </body>
