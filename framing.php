@@ -35,6 +35,8 @@ if($_GET["delivery"] == "Economy"){
     $postage = 5 * $length + 12;
 }
 $price = (pow($p_area,2) + (100 * $p_area) + +6);
+$priceNoVAT = (pow($p_area,2) + (100 * $p_area) + +6);
+$priceNoVAT = round($priceNoVAT,2);
 }
 ?>
 
@@ -58,57 +60,92 @@ $price = (pow($p_area,2) + (100 * $p_area) + +6);
     <label for="rapid">Rapid</label>
 
     <input type="radio" id="nextDay" name="delivery" value="NextDay">
-    <label for="nextDay">NextDay</label><br>
+    <label for="nextDay">NextDay</label><br><br>
 
     <input type="checkbox" id="VAT" name = "VAT" checked>
-    <label for="VAT">Include VAT in price</label><br>
+    <label for="VAT">Include VAT in price</label><br><br>
 
     <input type="text" id="email" name="email">
-    <label for="email">Email Address:</label>
-    <span class="error">* <?php echo $emailErr;?></span>
+    <label for="email">Email Address:</label><br><br>
+
+    <input type="checkbox" id="Opt" name = "Opt" >
+    <label for="Opt">Recieve mail and future information about my framing calculation</label><br>
+
     <br><br>
 
     <input type="submit">
 
 </form>
 <?php
+$servername = "devweb2021.cis.strath.ac.uk";
+$username = "tmb19188";
+$password = "ePu0Eequeije";
+$conn = new mysqli($servername, $username, $password, $username);
+
 if($_SERVER["REQUEST_METHOD"] == "GET"){
-    if(empty($_GET["width"])||empty($_GET["height"])||empty($_GET["email"])){
+    if(empty($_GET["width"])||empty($_GET["height"])){
         if(empty($_GET["width"])){
-            echo "Width is Required.\n";
+            echo "Width is Required.<br>";
         }
         if(empty($_GET["height"])){
-            echo "Height is Required.\n";
+            echo "Height is Required.<br>";
         }
-        if(empty($_GET["email"])){
-            echo "Email is required.\n";
-        }
-
     }elseif($p_width > 2 || $p_width < 0.2 || $p_height > 2 || $p_height < 0.2 ){
         if(min($p_height, $p_width) > 2) {
-            echo "We do not provide frames that wide\n";
+            echo "We do not provide frames that wide<br>";
         }elseif(min($p_height, $p_width) < 0.2){
-            echo "We do not provide frames that short\n";
-
+            echo "We do not provide frames that short<br>";
         }
-
-
     }else{
-        if(filter_var($_GET["email"], FILTER_VALIDATE_EMAIL)) {
-        if(isset($_GET['VAT'])){
-            $price = $price * 1.2;
-            $postage = $postage * 1.2;
-            echo "Your total comes to: ".money_format('%.2n',$price). " plus ".$_GET["delivery"]." postage of ".money_format('%.2n',$postage). " giving a total price of " .money_format('%.2n', $price+$postage). " including VAT";
-        }else{
-            echo "Your total comes to: ".money_format('%.2n',$price). " plus ".$_GET["delivery"]." postage of ".money_format('%.2n',$postage). " giving a total price of " .money_format('%.2n', $price+$postage);
-        }
+        if((isset($_GET['Opt']))) {
 
-            //mail($_GET["email"],"CS312 Purchase","Thank you for your purchase of a " .$p_width."x".$p_height." metre(s) frame.\n Your delivery option is: ".$_GET["delivery"].".\n Your final cost will be ".money_format('%.2n', $price+$postage));
-        }else{
-            echo "Invalid Email\n";
+            if(filter_var($_GET["email"], FILTER_VALIDATE_EMAIL)) {
+             if (isset($_GET['VAT'])) {
+                    $price = $price * 1.2;
+                    $postage = $postage * 1.2;
+                    echo "Your total comes to: " . money_format('%.2n', $price) . " plus " . $_GET["delivery"] . " postage of " . money_format('%.2n', $postage) . " giving a total price of " . money_format('%.2n', $price + $postage) . " including VAT <br>";
+                 } else {
+                    echo "Your total comes to: " . money_format('%.2n', $price) . " plus " . $_GET["delivery"] . " postage of " . money_format('%.2n', $postage) . " giving a total price of " . money_format('%.2n', $price + $postage) . "<br>";
+                 }
+
+                 mail($_GET["email"], "CS312 Purchase", "Thank you for your purchase of a " . $p_width . "x" . $p_height . " metre(s) frame.<br>Your delivery option is: " . $_GET["delivery"] . ".\n.Your final cost will be " . money_format('%.2n', $price + $postage) . "<br>");
+
+                if (isset($_GET['Opt'])) {
+
+                    if ($conn->connect_error) {
+                        die ("connectionFailed " . $conn->connect_error);
+                    }
+                    $sqlwidth = mysqli_real_escape_string($conn, $_GET['width']);
+                    $sqlheight = mysqli_real_escape_string($conn, $_GET['height']);
+                    $sqldelivery = mysqli_real_escape_string($conn, $_GET['delivery']);
+                    $sqlemail = mysqli_real_escape_string($conn, $_GET['email']);
+                    $sqlprice = mysqli_real_escape_string($conn, $priceNoVAT);
+                    $today = mysqli_real_escape_string($conn, date("Y-m-d H:i"));
+
+                    $sql = "INSERT INTO optin_clients (width, height, postage, email, price, requested) 
+                    VALUES ('$sqlwidth','$sqlheight','$sqldelivery','$sqlemail','$sqlprice','$today')";
+
+                    if ($conn->query($sql) === TRUE) {
+                        echo "\r\n";
+                        // This is just a placeholder
+                    } else {
+                    echo "Error: " . $sql . "<br>" . $conn->error;
+                    }
+                }
+            }else{
+                echo "Invalid Email<br>";
+            }
+            }else{
+                if (isset($_GET['VAT'])) {
+                    $price = $price * 1.2;
+                    $postage = $postage * 1.2;
+                    echo "Your total comes to: " . money_format('%.2n', $price) . " plus " . $_GET["delivery"] . " postage of " . money_format('%.2n', $postage) . " giving a total price of " . money_format('%.2n', $price + $postage) . " including VAT <br>";
+                } else {
+                    echo "Your total comes to: " . money_format('%.2n', $price) . " plus " . $_GET["delivery"] . " postage of " . money_format('%.2n', $postage) . " giving a total price of " . money_format('%.2n', $price + $postage) . "<br>";
+                }
+            }
         }
     }
-}
 
 ?>
  <p>* required fields</p>
